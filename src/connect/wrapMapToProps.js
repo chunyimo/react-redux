@@ -38,9 +38,11 @@ export function getDependsOnOwnProps(mapToProps) {
 //  * On first call, verifies the first result is a plain object, in order to warn
 //    the developer that their mapToProps function is not returning a valid result.
 //
+// mapToProps只mapStateToProps或mapDispatchToProps
 export function wrapMapToPropsFunc(mapToProps, methodName) {
   return function initProxySelector(dispatch, { displayName }) {
     const proxy = function mapToPropsProxy(stateOrDispatch, ownProps) {
+      // 根据组件是否依赖自身的props决定调用的时候传什么参数
       return proxy.dependsOnOwnProps
         ? proxy.mapToProps(stateOrDispatch, ownProps)
         : proxy.mapToProps(stateOrDispatch)
@@ -54,10 +56,15 @@ export function wrapMapToPropsFunc(mapToProps, methodName) {
       ownProps
     ) {
       proxy.mapToProps = mapToProps
+      // 根据组件是否传入了组件本身从父组件接收的props来确定是否需要向组件中注入ownProps，
+      // 最终会用来实现组件自身的props变化，也会调用mapToProps的效果
       proxy.dependsOnOwnProps = getDependsOnOwnProps(mapToProps)
+      // 再去执行proxy，这时候proxy.mapToProps已经被赋值为我们传进来的mapToProps函数，
+      // 所以props就会被赋值成传进来的mapToProps的返回值
       let props = proxy(stateOrDispatch, ownProps)
 
       if (typeof props === 'function') {
+        // 如果返回值是函数，那么再去执行这个函数，再将store中的state或dispatch，以及ownProps再传进去
         proxy.mapToProps = props
         proxy.dependsOnOwnProps = getDependsOnOwnProps(props)
         props = proxy(stateOrDispatch, ownProps)

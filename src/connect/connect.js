@@ -1,3 +1,5 @@
+/* eslint-disable valid-jsdoc */
+/* eslint-disable prettier/prettier */
 import connectAdvanced from '../components/connectAdvanced'
 import shallowEqual from '../utils/shallowEqual'
 import defaultMapDispatchToPropsFactories from './mapDispatchToProps'
@@ -43,6 +45,11 @@ function strictEqual(a, b) {
 
 // createConnect with default args builds the 'official' connect behavior. Calling it with
 // different options opens up some testing and extensibility scenarios
+/**
+ * 
+ * @param {*} param0 
+ * @returns 
+ */
 export function createConnect({
   connectHOC = connectAdvanced,
   mapStateToPropsFactories = defaultMapStateToPropsFactories,
@@ -63,6 +70,10 @@ export function createConnect({
       ...extraOptions
     } = {}
   ) {
+    // 将我们传入的mapStateToProps， mapDispatchToProps， mergeProps都初始化一遍
+    // 常规路线返回  wrapMapToPropsFunc(mapStateToProps, 'mapStateToProps')
+    // mapToProps 指 mapStateToProps 或者 mapDispatchToProps
+    // initMapStateToProps: (dispatch) => (stateOrDispatch, ownProps) => { return mapToProps(stateOrDispatch, ownProps)}
     const initMapStateToProps = match(
       mapStateToProps,
       mapStateToPropsFactories,
@@ -74,7 +85,11 @@ export function createConnect({
       'mapDispatchToProps'
     )
     const initMergeProps = match(mergeProps, mergePropsFactories, 'mergeProps')
-
+    // connectHOC 即connectAdvanced
+    /* 
+      selectorFactory：(dispatch, {initMapStateToProps,initMapDispatchToProps, initMergeProps}) 
+        => (nextState, nextOwnProps) => new mergerdProps
+    */
     return connectHOC(selectorFactory, {
       // used in error messages
       methodName: 'connect',
@@ -102,3 +117,67 @@ export function createConnect({
 }
 
 export default /*#__PURE__*/ createConnect()
+
+
+/* demo
+
+import React from 'react'
+import { connect } from '../../react-redux-src'
+import { increaseAction, decreaseAction } from '../../actions/counter'
+import { Button } from 'antd'
+class Child extends React.Component {
+  render() {
+    const { increaseAction, decreaseAction, num } = this.props
+    return <div>
+        {num}
+        <Button onClick={() => increaseAction()}>增加</Button>
+        <Button onClick={() => decreaseAction()}>减少</Button>
+    </div>
+  }
+}
+const mapStateToProps = (state, ownProps) => {
+  const { counter } = state
+  return {
+    num: counter.num
+  }
+}
+
+const mapDispatchToProps = (dispatch, ownProps) => {
+  return {
+    increaseAction: () => dispatch({
+      type: INCREASE
+    }),
+    decreaseAction: () => dispatch({
+      type: DECREASE
+    })
+  }
+}
+export default connect(mapStateToProps, mapDispatchToProps)(Child)
+
+*/
+
+/*
+  在connet中先对传入的mapToProps 进行初始化，在把mapToProps的处理函数selectorFactory 和 初始化后的mapToProps给
+  connectAdvanced，在其内部进行处理。
+  connect(mapStateToProps, mapDispatchToProps) 
+    => connectAdvanced(selectorFactory, {...initMapToProps})
+  connectAdvanced: (selectorFactory, {...initMapToProps}) => (WrappedComponent) => {
+
+  }
+
+  connet: (mapStateToProps, mapDispatchToProps) =>  (WrappedComponent) => <Connect />
+
+
+  Connect = <Context.Provider value={ContextValue}>
+              {<WrappedComponent {...props} />}
+  </Context.Provider>
+
+  props 有来自从store map而来的最新值，也有直接传到WrappedComponent的属性
+
+  connect 可以视为两层柯里化的函数，第二层（(WrappedComponent) => <Connect />），我们称为wrapWithConnect，
+  在wrapWithConnect中有两个effect 钩子(server 端为useEffect、browser端为useLayoutEffect)。
+  第一个effect钩子，没有设置依赖，每次都会执行，只要有来自store的新props就会通知执行listeners
+
+  第二个effect钩子，基本上只会执行一次，其作用就是设置 subscription.onStateChange = checkForUpdates，注册一个更新回调
+  如图所示：src\connect\call stack.png
+*/
