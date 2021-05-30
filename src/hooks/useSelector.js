@@ -14,10 +14,10 @@ function useSelectorWithStoreAndSubscription(
 ) {
   const [, forceRender] = useReducer((s) => s + 1, 0)
 
-  const subscription = useMemo(() => new Subscription(store, contextSub), [
-    store,
-    contextSub,
-  ])
+  const subscription = useMemo(
+    () => new Subscription(store, contextSub),
+    [store, contextSub]
+  )
 
   const latestSubscriptionCallbackError = useRef()
   const latestSelector = useRef()
@@ -35,12 +35,14 @@ function useSelectorWithStoreAndSubscription(
     ) {
       const newSelectedState = selector(storeState)
       // ensure latest selected state is reused so that a custom equality function can result in identical references
+      // 确保最新选择的状态被重用,这样一个自定义的相等函数就可以产生相同的引用
       if (
         latestSelectedState.current === undefined ||
         !equalityFn(newSelectedState, latestSelectedState.current)
       ) {
         selectedState = newSelectedState
       } else {
+        // 在checkForUpdate中更新 latestSelectedState.current，并在此时同步到selectedState 作为返回值。
         selectedState = latestSelectedState.current
       }
     } else {
@@ -53,14 +55,14 @@ function useSelectorWithStoreAndSubscription(
 
     throw err
   }
-
+  // 每次都执行，进行变量ref.current的更新。
   useIsomorphicLayoutEffect(() => {
     latestSelector.current = selector
     latestStoreState.current = storeState
     latestSelectedState.current = selectedState
     latestSubscriptionCallbackError.current = undefined
   })
-
+  // 声明回调函数绑定到subscription的onStateChange上。
   useIsomorphicLayoutEffect(() => {
     function checkForUpdates() {
       try {
@@ -97,7 +99,7 @@ function useSelectorWithStoreAndSubscription(
 
 /**
  * Hook factory, which creates a `useSelector` hook bound to a given context.
- *
+ * 包裹函数的主要作用是获取上下文，并进行绑定。
  * @param {React.Context} [context=ReactReduxContext] Context passed to your `<Provider>`.
  * @returns {Function} A `useSelector` hook bound to the specified context.
  */
@@ -120,8 +122,9 @@ export function createSelectorHook(context = ReactReduxContext) {
         )
       }
     }
+    // !这一步相当重要，把ReactReduxContext的subscription作为当前subscription的parentSub。
+    // !有了这一操作作为先手，后续的trySubscribe调用就会把onStateChange作为父节点的一个listener,如此层层递进到redux的回调
     const { store, subscription: contextSub } = useReduxContext()
-
     const selectedState = useSelectorWithStoreAndSubscription(
       selector,
       equalityFn,

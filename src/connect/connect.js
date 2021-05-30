@@ -178,6 +178,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(Child)
   在wrapWithConnect中有两个effect 钩子(server 端为useEffect、browser端为useLayoutEffect)。
   第一个effect钩子，没有设置依赖，每次都会执行，只要有来自store的新props就会通知执行listeners
 
-  第二个effect钩子，基本上只会执行一次，其作用就是设置 subscription.onStateChange = checkForUpdates，注册一个更新回调
+  第二个effect钩子，基本上只会执行一次，其作用就是设置 subscription.onStateChange = checkForUpdates，注册一个更新回调,
+  然后调用trySubcribe，通过层级传递，与redux 的listener搭上关系。
   如图所示：src\connect\call stack.png
 */

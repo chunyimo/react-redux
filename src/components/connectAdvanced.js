@@ -378,7 +378,7 @@ export default function connectAdvanced(
         // The child props selector needs the store reference as an input.
         // Re-create this selector whenever the store changes.
         // 仅当store变化的时候，创建selector
-        // 调用childPropsSelector => childPropsSelector(dispatch, options)
+        // 调用childPropsSelector => childPropsSelector(prestate, ownprops)
         return createChildSelector(store)
       }, [store])
 
