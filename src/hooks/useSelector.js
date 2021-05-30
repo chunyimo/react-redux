@@ -162,3 +162,10 @@ export function createSelectorHook(context = ReactReduxContext) {
  * }
  */
 export const useSelector = /*#__PURE__*/ createSelectorHook()
+
+/*
+  在createSelectorHook，使用useContext拿到上下文的变量，返回useSelect。
+  可以把useSelect视为一个组件，该组件又依赖于另外一个组件，useSelectorWithStoreAndSubscription，
+  useSelectorWithStoreAndSubscription组件使用了useRedcer, 当有更新的时候，会触发dispatch，让组件更新。
+  
+*/
