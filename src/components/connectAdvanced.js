@@ -388,6 +388,8 @@ export default function connectAdvanced(
         // This Subscription's source should match where store came from: props vs. context. A component
         // connected to the store via props shouldn't use subscription from context, or vice versa.
         // 如果store是从props中来的，就不再传入subscription实例，否则使用context中传入的subscription实例
+        // ! 此处将contextValue.subscription 作为创建的subscription的parentSub很重要, 如此才能构建事件链，将该subscription
+        // ! 的onStateChange加入parentSub的listener。
         const subscription = new Subscription(
           store,
           didStoreComeFromProps ? null : contextValue.subscription

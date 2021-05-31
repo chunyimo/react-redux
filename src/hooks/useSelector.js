@@ -166,6 +166,8 @@ export const useSelector = /*#__PURE__*/ createSelectorHook()
 /*
   在createSelectorHook，使用useContext拿到上下文的变量，返回useSelect。
   可以把useSelect视为一个组件，该组件又依赖于另外一个组件，useSelectorWithStoreAndSubscription，
-  useSelectorWithStoreAndSubscription组件使用了useRedcer, 当有更新的时候，会触发dispatch，让组件更新。
+  useSelectorWithStoreAndSubscription 组件使用了useRedcer, 当有更新的时候，会触发dispatch，让组件更新。
+  与connect相似，useSelectorWithStoreAndSubscription 内也使用了两个effect 钩子，一个没有依赖，每次执行，
+  更新refcurrent的值，一个依赖store，设置checkForUpdates，然后调用trySubscribe,与redux的subscribe搭上关系。
   
 */
