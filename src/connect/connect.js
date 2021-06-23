@@ -181,4 +181,16 @@ export default connect(mapStateToProps, mapDispatchToProps)(Child)
   第二个effect钩子，基本上只会执行一次，其作用就是设置 subscription.onStateChange = checkForUpdates，注册一个更新回调,
   然后调用trySubcribe，通过层级传递，与redux 的listener搭上关系。
   如图所示：src\connect\call stack.png
+
+  在checkForUpdates 内部获取到最新的state，更新state的值，那么就可以在第一个钩子，检测到新进来的只，触发更新
+*/
+
+/*
+
+connect 两件事：
+  1. 处理mapStateToProps 和 mapDispatchToProps, 计算出传递给wrappedComponent的属性
+  2. 设置监听器，触发更新
+    关键点：用store 初始化subscription对象，调用trySubscribe方法的时候，会把监听函数添加到redux的订阅中。
+    两个useEffect的钩子：一个无依赖，每次执行，检测到state变化，同时subscription执行订阅的回调。
+    一个为将通过useReducer产生的强制更新的dispatch添加到subscription的订阅中。
 */
